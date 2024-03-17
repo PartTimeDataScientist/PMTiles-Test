@@ -19,7 +19,7 @@ jobs:
         sudo mkdir -p out
         sudo chown runner:docker -R out/ data/
         sudo chmod 777 .
-        sudo ls -la
+        echo ${{ env.OSM_PBF_URL }} 
         wget -o data/sources/input.pbf ${{ env.OSM_PBF_URL }} 
 
     - name: Pull latest planetiler
