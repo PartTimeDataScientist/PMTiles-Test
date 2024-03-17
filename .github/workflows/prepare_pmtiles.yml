@@ -1,0 +1,106 @@
+# SPDX-FileCopyrightText: 2024 Lars Röglin <git@parttimedatascientist.de>
+# SPDX-License-Identifier: CC0-1.0
+
+name: Prepare PMTiles-File
+
+on:
+  workflow_dispatch:
+#  schedule:
+#   - cron:  '30 2 * * *'
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Download OSM-File
+      run: |
+        sudo mkdir -p data/sources
+        sudo mkdir -p out
+        sudo chown 1000:1000 -R out/ data/sources
+        sudo chmod 777 .
+        wget -o data/sources/input.pbf ${{ env.OSM_PBF_URL }} 
+
+    - name: Pull latest planetiler
+      run: docker pull ghcr.io/onthegomap/planetiler:latest
+
+    - name: Generate PMTiles-File
+      run: |
+        docker run \
+        -e JAVA_TOOL_OPTIONS='-Xmx2g' \
+        -v "data":/data \
+        ghcr.io/onthegomap/planetiler:latest \
+        --osm-path=data/sources/input.pbf \
+        --output="/data/planet.pmtiles" \
+        --transportation_name_size_for_shield \
+        --transportation_name_limit_merge \
+        --boundary-osm-only \
+        --storage=mmap --nodemap-type=array \
+        --max-point-buffer=4 \
+        --building_merge_z13=false \
+        --languages=de,en
+  #      --area=planet --bounds=world \
+#        --languages=ab,ace,af,als,am,an,ar,arz,as,ast,az,az-Arab,az-cyr,azb,ba,bar,bat-smg,be,be-tarask,ber,bg,bm,bn,bo,bpy,br,bs,bxr,ca,cdo,ce,ceb,cho,chr,chy,ckb,co,cr,crh,crh-cyr,crk,cs,csb,cv,cy,da,dak,de,dsb,dv,dz,ee,egl,el,en,eo,es,et,eu,fa,fi,fil,fit,fo,fr,frr,full,fur,fy,ga,gag,gan,gcf,gd,gl,gn,gr,grc,gsw,gu,gv,ha,hak,hak-HJ,haw,he,hi,hif,hr,hsb,ht,hu,hur,hy,ia,id,ie,ilo,int,io,is,it,iu,ja,ja_kana,ja_rm,ja-Hira,ja-Latn,jv,ka,kab,kbd,ki,kk,kk-Arab,kl,km,kn,ko,ko-Hani,ko-Latn,krc,krl,ks,ku,kv,kw,ky,la,lb,left,lez,li,lij,lld,lmo,ln,lo,lrc,lt,lv,lzh,md,mdf,mez,mg,mhr,mi,mia,mk,ml,mn,mo,moh,mr,mrj,ms,ms-Arab,mt,mwl,my,myv,mzn,nah,nan,nan-HJ,nan-POJ,nan-TL,nds,ne,nl,nn,no,nov,nv,oc,oj,old,or,os,ota,pa,pam,pcd,pfl,pl,pms,pnb,pot,ps,pt,qu,right,rm,ro,ru,rue,rw,sah,sat,sc,scn,sco,sd,se,sh,si,sju,sk,sl,sma,smj,so,sq,sr,sr-Latn,su,sv,sw,syc,szl,ta,te,TEC,tg,th,th-Latn,ti,tk,tl,tr,tt,tt-lat,udm,ug,uk,ur,uz,uz-Arab,uz-cyr,uz-Cyrl,uz-Latn,vec,vi,vls,vo,wa,war,win,wiy,wo,wuu,xmf,yi,yo,yue,yue-Hant,yue-Latn,za,zgh,zh,zh_pinyin,zh_zhuyin,zh-Hans,zh-Hant,zh-Latn-pinyin,zu,zza
+
+
+    # - name: Check out code
+    #   uses: actions/checkout@v4
+
+    # - name: Fetch submodules
+    #   run: git submodule update --init --checkout --remote
+
+    # - name: Build docker images
+    #   run: docker build -t transitous . -f ci/container/Containerfile
+
+    # - name: Restore cached feeds
+    #   uses: actions/cache/restore@v4
+    #   with:
+    #     path: |
+    #       downloads/
+    #       out/*.zip
+    #     key: feeds-
+    #     restore-keys: |
+    #       feeds-
+
+    # - name: Fetch GTFS-Feeds
+    #   run: |
+    #     sudo mkdir -p out
+    #     sudo mkdir -p downloads
+    #     sudo chown 1000:1000 -R out/ downloads/ docs/
+    #     sudo chmod 777 .
+    #     docker run -v $PWD:/transitous -w /transitous transitous ci/fetch-feeds.py timer
+
+    # - name: Cache feeds
+    #   uses: actions/cache/save@v4
+    #   if: always()
+    #   with:
+    #     path: |
+    #       downloads/
+    #       out/*.zip
+    #     key: feeds-${{ hashFiles('downloads/*') }}
+
+    # - name: Update attribution
+    #   run: |
+    #     docker run -v $PWD:/transitous -w /transitous transitous src/generate-attribution.py
+
+    # - name: Cache licenses.md
+    #   uses: actions/cache/save@v4
+    #   with:
+    #     path: |
+    #       docs/docs/licenses.md
+    #     key: licenses-${{ hashFiles('docs/docs/licenses.md') }}
+
+    # - name: Import Feeds into motis
+    #   run: |
+    #     docker run -v $PWD:/transitous -w /transitous transitous src/generate-motis-config.py import
+    #     docker run -v $PWD:/transitous -w /transitous/out transitous ../ci/motis-import.py
+    #     docker run -v $PWD:/transitous -w /transitous transitous src/generate-motis-config.py full
+
+    # - name: Upload results
+    #   run: |
+    #     echo "${{secrets.RSYNC_PRIVATE_KEY}}" > deploy_key
+    #     chmod 600 ./deploy_key
+    #     rsync -avz --progress --delete \
+    #       -e 'ssh -i ./deploy_key -p 22 -o StrictHostKeyChecking=no' \
+    #       out/ rsync@vm-motis.spline.de:
+    #     rm deploy_key
