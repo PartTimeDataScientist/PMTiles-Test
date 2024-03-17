@@ -38,6 +38,7 @@ jobs:
         --storage=mmap --nodemap-type=array \
         --max-point-buffer=4 \
         --building_merge_z13=false \
+        --download \
         --water-polygons-url=https://github.com/onthegomap/planetiler/raw/main/planetiler-core/src/test/resources/water-polygons-split-3857.zip \
         --natural-earth-url=https://github.com/onthegomap/planetiler/raw/main/planetiler-core/src/test/resources/natural_earth_vector.sqlite.zip \
         --languages=de,en
