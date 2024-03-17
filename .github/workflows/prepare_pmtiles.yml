@@ -19,8 +19,7 @@ jobs:
         sudo mkdir -p out
         sudo chown runner:docker -R out/ data/
         sudo chmod 777 .
-        echo ${{ env.OSM_PBF_URL }} 
-        wget -o data/sources/input.pbf ${{ env.OSM_PBF_URL }} 
+        wget -O data/sources/input.pbf ${{ vars.OSM_PBF_URL }} 
 
     - name: Pull latest planetiler
       run: docker pull ghcr.io/onthegomap/planetiler:latest
