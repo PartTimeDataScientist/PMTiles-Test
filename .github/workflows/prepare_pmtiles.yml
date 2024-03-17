@@ -17,7 +17,7 @@ jobs:
       run: |
         sudo mkdir -p data/sources
         sudo mkdir -p out
-        sudo chown 1001:121 -R out/ data/sources/
+        sudo chown runner:docker -R out/ data/
         sudo chmod 777 .
         sudo ls -la
         wget -o data/sources/input.pbf ${{ env.OSM_PBF_URL }} 
